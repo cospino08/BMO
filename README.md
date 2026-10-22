@@ -1,18 +1,17 @@
 # BMO — Agente IA local con cuerpo físico
 
-BMO es un asistente de inteligencia artificial que funciona **100 % en local** sobre una Raspberry Pi 5. Escucha, piensa, ve y habla sin depender de la nube, con cara animada en pantalla, cámara, botones físicos y una carcasa impresa en 3D inspirada en BMO de *Hora de Aventura*.
+BMO es un asistente de inteligencia artificial que funciona **100 % en local** sobre una Raspberry Pi 4. Escucha, piensa y habla sin depender de la nube, con cara animada en pantalla, botones físicos y una carcasa impresa en 3D inspirada en BMO de *Hora de Aventura*.
 
 | Capacidad | Tecnología |
 |---|---|
 | Palabra de activación ("Hey BMO") | openWakeWord |
 | Voz → texto | faster-whisper / whisper.cpp |
-| Razonamiento | Gemma 3 vía Ollama |
-| Visión | Moondream o Gemma 3 (multimodal) vía Ollama |
+| Razonamiento | Gemma 3 (270M o 1B) vía Ollama |
 | Texto → voz | Piper |
 | Botones | PCB propia + Raspberry Pi Pico como teclado USB |
 | Carcasa | FreeCAD/Onshape (funcional) + Blender (estética), impresión 3D |
 
-> **Estado:** planificación (semana 1). Ver el [plan del proyecto](docs/plan.md).
+> **Estado:** planificación (semana 1). Sin visión artificial por ahora ([ADR 0003](docs/decisiones/0003-raspberry-pi-4-sin-vision.md)). Ver el [plan del proyecto](docs/plan.md).
 
 ---
 
@@ -47,7 +46,7 @@ Cada carpeta tiene su propio `README.md` que explica **qué va ahí, quién la m
 | Líder de Proyecto / Arquitecto de Software | `docs/`, `software/` (estados, agente, UI), `despliegue/` |
 | Ingeniero de Hardware y Electrónica | `pcb/`, `firmware/`, `docs/hardware/` |
 | Diseñador 3D y Modelador | `cad/`, `docs/hardware/medidas.md`, `docs/hardware/ensamblaje.md` |
-| Desarrollador de IA | `ia/`, `software/bmo/voz/`, `software/bmo/llm.py`, `software/bmo/vision.py` |
+| Desarrollador de IA | `ia/`, `software/bmo/voz/`, `software/bmo/llm.py` |
 
 ## Por dónde empezar
 

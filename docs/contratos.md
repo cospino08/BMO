@@ -2,7 +2,7 @@
 
 > **Fuente de verdad.** Lo que está aquí es lo que cada área promete entregar y lo que puede esperar de las demás. Para cambiarlo: PR aprobado por **todas** las áreas afectadas (ver [CONTRIBUTING.md](../CONTRIBUTING.md)).
 >
-> Versión: **v0.1** (propuesta, semana 1)
+> Versión: **v0.2** (propuesta, semana 1). Cambios v0.2: Raspberry Pi 4 y sin visión ([ADR 0003](decisiones/0003-raspberry-pi-4-sin-vision.md)).
 
 ## 1. Botones → Software (teclado USB)
 
@@ -16,7 +16,7 @@ Responsable: Hardware (firmware). Consume: Líder (UI).
 | Cruceta → | GP5 | `→` | `TECLA_DER` | Navegar / subir volumen |
 | A (rojo) | GP6 | `Enter` | `TECLA_A` | Hablar sin wake word / confirmar |
 | B (verde) | GP7 | `Esc` | `TECLA_B` | Cancelar / callar a BMO |
-| Triángulo | GP8 | `F1` | `TECLA_FOTO` | Tomar foto y describirla |
+| Triángulo | GP8 | `F1` | `TECLA_REPETIR` | Repetir la última respuesta |
 | Start | GP9 | `F2` | `TECLA_MENU` | Abrir menú |
 | Select | GP10 | `F3` | `TECLA_MODO` | Cambiar modo |
 
@@ -48,11 +48,9 @@ def pensar(texto: str, historial: list[dict], herramientas: list[dict]) -> Itera
 def hablar(frase: str) -> None         # encola; no bloquea
 def detener_habla() -> None            # vacía la cola y corta el audio en < 200 ms
 def esta_hablando() -> bool
-
-# vision.py
-def ver(pregunta: str = "Describe lo que ves") -> str
-    # toma la foto y devuelve una descripción breve en español (máx. 2 frases)
 ```
+
+> Sin visión por ahora ([ADR 0003](decisiones/0003-raspberry-pi-4-sin-vision.md)).
 
 **Reglas para todos los módulos:**
 - Leen su configuración de `config.yaml` y nunca usan valores fijos en el código.
@@ -69,13 +67,12 @@ Responsable: Líder. Todo lo que pasa en BMO es un `Evento(tipo: str, datos: dic
 | `TECLA_*` | UI | — |
 | `TEXTO_LISTO` | Agente (tras `escuchar`) | `{"texto": str}` |
 | `SILENCIO_TIMEOUT` | Agente | — |
-| `DESCRIPCION_LISTA` | Agente (tras `ver`) | `{"texto": str}` |
 | `FRASE` | Agente | `{"texto": str}` |
 | `FIN_HABLA` | Voz | — |
 | `ERROR` | Cualquiera | `{"mensaje": str}` |
 | `estado_cambiado` | Agente → UI | `{"estado": str}` |
 
-Estados válidos: `INACTIVO`, `ESCUCHANDO`, `PENSANDO`, `MIRANDO`, `HABLANDO`, `ERROR`.
+Estados válidos: `INACTIVO`, `ESCUCHANDO`, `PENSANDO`, `HABLANDO`, `ERROR`.
 
 ## 4. Configuración
 
@@ -96,17 +93,15 @@ vad:
   silencio_fin_s: 0.8
   max_grabacion_s: 15
 stt:
-  motor: faster-whisper       # o whisper.cpp
-  modelo: base
+  motor: whisper.cpp          # o faster-whisper
+  modelo: tiny
 llm:
   url: http://localhost:11434
-  modelo: gemma3:4b
+  modelo: gemma3:1b           # o gemma3:270m según el benchmark
   prompt_sistema: ia/prompts/sistema.md
-  max_herramientas_por_turno: 2
-  turnos_historial: 6
-vision:
-  modelo: moondream
-  resolucion: [640, 480]
+  max_herramientas_por_turno: 1
+  turnos_historial: 4
+  frase_espera: true          # "Mmm, déjame pensar…" al entrar en PENSANDO
 tts:
   voz: es_ES-...              # nombre del modelo de Piper
   velocidad: 1.0

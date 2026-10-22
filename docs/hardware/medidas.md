@@ -11,11 +11,11 @@
 
 | Componente | X | Y | Z | Agujeros de montaje (diámetro / posición) | Conectores y por qué lado salen | Espacio extra para cables | Medido por | Fecha |
 |---|---|---|---|---|---|---|---|---|
-| Raspberry Pi 5 | 85 (FT) | 56 (FT) | | M2.5, 58 x 49 (FT) | USB/Ethernet: lado corto; USB-C y HDMI: lado largo | | | |
-| Pi 5 + Active Cooler + HAT M.2 + HAT batería (pila completa) | | | | | | | | |
+| Raspberry Pi 4 | 85 (FT) | 56 (FT) | | M2.5, 58 x 49 (FT) | USB/Ethernet: lado corto; USB-C y micro-HDMI: lado largo | | | |
+| Pi 4 + disipadores + ventilador + HAT batería (pila completa) | | | | | | | | |
+| SSD + adaptador USB | | | | | | | | |
 | Pantalla 5" (módulo completo) | | | | | | | | |
 | Área visible de la pantalla | | | — | — | — | — | | |
-| Camera Module 3 | 25 (FT) | 24 (FT) | | M2, 4 agujeros (FT) | FFC hacia abajo | | | |
 | Micrófono USB | | | | | | | | |
 | Parlante USB | | | | | | | | |
 | Batería (si va separada del HAT) | | | | | | | | |
@@ -29,8 +29,8 @@
 |---|---|
 | Tolerancia de encaje (holgura por lado) | 0.2–0.3 mm (confirmar con la impresión de prueba) |
 | Radio mínimo de curvatura de los FFC | |
-| Separación mínima del Active Cooler a la pared | |
-| Acceso sin desarmar | USB-C de carga, botón de encendido, ranura NVMe (o tapa) |
+| Separación mínima del ventilador a la pared | |
+| Acceso sin desarmar | USB-C de carga, botón de encendido, SSD (o tapa) |
 | Posición del micrófono | Lejos del parlante y del ventilador; con orificio hacia el frente |
 
 ## Historial

@@ -14,20 +14,20 @@
 
 | Paso | Qué | Foto | Notas / problemas encontrados |
 |---|---|---|---|
-| 1 | Conectar el FFC de la pantalla y el de la cámara a la Pi **antes** de meterla en la carcasa | | |
+| 1 | Conectar el cable de la pantalla a la Pi **antes** de meterla en la carcasa | | |
 | 2 | Montar la pantalla en el frontal | | |
-| 3 | Montar la cámara en el frontal | | |
-| 4 | Montar la PCB de botones en el frontal y colocar las tapas de los botones | | |
-| 5 | Montar la pila Pi 5 + Cooler + HAT M.2 + HAT batería en la base | | |
-| 6 | Conectar los USB: micrófono, parlante y Pico | | |
+| 3 | Montar la PCB de botones en el frontal y colocar las tapas de los botones | | |
+| 4 | Montar la pila Pi 4 + disipadores + ventilador + HAT batería en la base | | |
+| 5 | Fijar el SSD con su adaptador USB | | |
+| 6 | Conectar los USB: SSD, Pico, micrófono y parlante | | |
 | 7 | Ordenar los cables con bridas, lejos del ventilador | | |
-| 8 | Prueba con la carcasa abierta: encender y verificar pantalla, cámara, audio y botones | | |
+| 8 | Prueba con la carcasa abierta: encender y verificar pantalla, audio y botones | | |
 | 9 | Cerrar la carcasa | | |
 | 10 | Prueba final: 10 min con el LLM a carga máxima, revisar la temperatura | | |
 
 ## Desarmado
 
-Pasos para llegar a la NVMe, a la batería y a la PCB sin romper nada. Completar.
+Pasos para llegar al SSD, a la batería y a la PCB sin romper nada. Completar.
 
 ## Problemas conocidos
 

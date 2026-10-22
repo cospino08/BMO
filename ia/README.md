@@ -2,7 +2,7 @@
 
 > Responsable: **Desarrollador de IA**.
 >
-> Aquí van los recursos de IA que **no son código de BMO en ejecución**: prompts, entrenamiento de la wake word, benchmarks y documentos para RAG. El código que usa todo esto está en [`software/bmo/`](../software/README.md) (`voz/`, `llm.py`, `vision.py`).
+> Aquí van los recursos de IA que **no son código de BMO en ejecución**: prompts, entrenamiento de la wake word, benchmarks y documentos para RAG. El código que usa todo esto está en [`software/bmo/`](../software/README.md) (`voz/`, `llm.py`).
 
 ## Estructura a llenar
 
@@ -25,7 +25,6 @@ ia/
 │   ├── README.md               ← metodología: hardware, temperatura, cómo repetirlo
 │   ├── bench_llm.py            ← tokens/s, tiempo hasta la primera palabra y RAM de cada modelo
 │   ├── bench_stt.py            ← tiempo de Whisper por modelo y motor, con audios de prueba
-│   ├── bench_vision.py         ← tiempo y calidad: Moondream vs Gemma 3
 │   ├── resultados/
 │   │   └── AAAA-MM-DD_<prueba>.csv
 │   └── informe.md              ← conclusiones → alimentan los ADR de modelos
@@ -42,7 +41,7 @@ CSV con estas columnas (una fila por ejecución):
 fecha,dispositivo,modelo,cuantizacion,prueba,tokens_por_s,primera_palabra_ms,total_ms,ram_mb,temp_c,throttled
 ```
 
-- Siempre en la **Pi 5 real** (para referencia, también en PC, con `dispositivo=pc`).
+- Siempre en la **Pi 4 real** (para referencia, también en PC, con `dispositivo=pc`).
 - Mínimo **5 repeticiones** por combinación; se reporta la mediana.
 - Anotar si la Pi estaba en la carcasa o abierta.
 
@@ -55,7 +54,7 @@ fecha,dispositivo,modelo,cuantizacion,prueba,tokens_por_s,primera_palabra_ms,tot
 
 ## Checklist
 
-- [ ] S1–2: Benchmarks LLM, STT y visión + `informe.md` → ADR de modelos
+- [ ] S1–2: Benchmarks LLM (`gemma3:270m` vs `gemma3:1b`) y STT + `informe.md` → ADR de modelos
 - [ ] S3: `hey_bmo.onnx` entrenado + `pruebas.md`
 - [ ] S4: `sistema.md` v1 + `preguntas_prueba.md`
 - [ ] S5: `herramientas.md`

@@ -7,13 +7,13 @@
 
 ## Contexto
 
-BMO necesita 9 botones físicos (cruceta, A, B, Triángulo, Start, Select). Los pines GPIO de la Pi 5 pueden quedar tapados por el HAT NVMe y el HAT de batería, y la PCB debe poder probarse sin la Pi.
+BMO necesita 9 botones físicos (cruceta, A, B, Triángulo, Start, Select). Los pines GPIO de la Pi 4 pueden quedar tapados por el HAT de batería y el ventilador, y la PCB debe poder probarse sin la Pi.
 
 ## Opciones consideradas
 
 | Opción | A favor | En contra |
 |---|---|---|
-| A. Botones directo a los GPIO de la Pi 5 | Sin microcontrolador; más barato | Los GPIO pueden estar ocupados por los HATs; el software tiene que leer GPIO; no se puede probar en un PC |
+| A. Botones directo a los GPIO de la Pi 4 | Sin microcontrolador; más barato | Los GPIO pueden estar ocupados por los HATs; el software tiene que leer GPIO; no se puede probar en un PC |
 | B. Pico como teclado USB (HID) | Se prueba en cualquier PC; no requiere drivers; el software solo lee teclas; independiente de los HATs | Un componente más; ocupa un puerto USB |
 
 ## Decisión

@@ -1,8 +1,8 @@
 # 🤖 Plan de Proyecto: Agente IA Embodied (BMO Local)
 
-> Asistente de IA local con cuerpo físico estilo BMO, basado en Raspberry Pi 5 con modelos locales de lenguaje, visión y voz, y controles físicos propios. Todo funciona **sin conexión a internet**; la búsqueda web es un extra opcional.
+> Asistente de IA local con cuerpo físico estilo BMO, basado en una **Raspberry Pi 4**, con modelos locales de lenguaje y voz y controles físicos propios. Todo funciona **sin conexión a internet**; la búsqueda web es un extra opcional.
 >
-> Referencia: video "I made a real BMO local AI agent with a Raspberry Pi and Ollama" (brenpoly).
+> Referencia: video "I made a real BMO local AI agent with a Raspberry Pi and Ollama" (brenpoly). El video usa una Pi 5 y visión; este proyecto usa una **Pi 4** y **por ahora no incluye visión** (ver [ADR 0003](decisiones/0003-raspberry-pi-4-sin-vision.md)).
 >
 > **Documentos vivos:** las interfaces entre áreas se mantienen en [contratos.md](contratos.md), la arquitectura en [arquitectura.md](arquitectura.md), la lista de materiales en [hardware/bom.md](hardware/bom.md) y el firmware en [`firmware/pico/code.py`](../firmware/pico/code.py). Si este plan y esos archivos difieren, mandan esos archivos.
 
@@ -11,7 +11,7 @@
 ## Índice
 
 1. [Objetivo y criterios de éxito](#1-objetivo-y-criterios-de-éxito)
-2. [Correcciones técnicas al plan original](#2-correcciones-técnicas-al-plan-original)
+2. [Consideraciones técnicas de la Raspberry Pi 4](#2-consideraciones-técnicas-de-la-raspberry-pi-4)
 3. [Plan por miembro del equipo](#3-plan-por-miembro-del-equipo)
 4. [Contratos entre áreas](#4-contratos-entre-áreas)
 5. [Plan detallado de la PCB de controles](#5-plan-detallado-de-la-pcb-de-controles)
@@ -23,32 +23,36 @@
 
 ## 1. Objetivo y criterios de éxito
 
-Construir un BMO que **escuche, piense, vea y hable** en local, con cara animada en pantalla y botones físicos funcionales.
+Construir un BMO que **escuche, piense y hable** en local, con cara animada en pantalla y botones físicos funcionales.
 
 El proyecto se considera terminado cuando BMO:
 
 - [ ] Arranca solo al encender y muestra su cara.
 - [ ] Se activa con "Hey BMO" (menos de 1 activación falsa por hora).
-- [ ] Empieza a responder en **menos de 4 s** después de que el usuario termina de hablar.
-- [ ] Describe lo que ve con la cámara cuando se le pide.
+- [ ] Empieza a responder en **menos de 6 s** después de que el usuario termina de hablar. Es un objetivo provisional: se ajusta con el benchmark de la semana 2.
 - [ ] Funciona con el cable de red desconectado.
 - [ ] Dura más de 1 hora con batería sin que la Pi baje su velocidad por temperatura o energía.
 - [ ] Todos los botones responden.
 
+**Fuera de alcance por ahora:** visión artificial (cámara). La arquitectura permite agregarla más adelante como una herramienta nueva sin rehacer el resto.
+
 ---
 
-## 2. Correcciones técnicas al plan original
+## 2. Consideraciones técnicas de la Raspberry Pi 4
 
-| Tema | Problema | Solución |
+| Tema | Detalle | Qué hacer |
 |---|---|---|
-| Cámara / pantalla | La Pi 5 usa conectores MIPI de 22 pines, no de 15 | Comprar cables adaptadores 22→15. Se recomienda la Camera Module 3 |
-| NVMe + batería | El HAT M.2 y el HAT de batería pueden chocar entre sí. La Pi 5 necesita 5V/5A | Verificar que sean compatibles **antes de comprar**. Probar `vcgencmd get_throttled` |
-| Calor | El LLM a carga máxima en una carcasa cerrada hace que la Pi baje su velocidad | Active Cooler obligatorio y ventilación diseñada en la carcasa |
+| RAM | La Pi 4 viene con 1, 2, 4 u 8 GB | Usar la de **8 GB**; 4 GB es el mínimo con modelos pequeños |
+| Rendimiento | La CPU es 2–3 veces más lenta que la de la Pi 5. Es el **mayor riesgo** del proyecto | Modelos pequeños: `gemma3:1b` o `gemma3:270m`; Whisper `tiny`; medir en la semana 2 |
+| Sistema operativo | Ollama necesita 64 bits | Raspberry Pi OS **64 bits** |
+| Almacenamiento | La Pi 4 no tiene PCIe: no admite HAT NVMe | SSD por **USB 3.0** (adaptador o carcasa USB) con arranque USB. La microSD solo para pruebas |
+| Energía | La Pi 4 necesita **5V/3A** por USB-C | La batería o UPS debe entregar 3A sostenidos. Verificar con `vcgencmd get_throttled` |
+| Calor | La Pi 4 baja su velocidad sobre 80 °C | Disipadores + ventilador de 5V (no existe el Active Cooler oficial para Pi 4). La carcasa debe ventilar |
+| Ventilador | La Pi 4 no tiene conector FAN | Alimentar el ventilador desde los pines 5V/GND del GPIO; verificar que no choque con el HAT de batería |
+| Pantalla | La Pi 4 usa conectores DSI de 15 pines y micro-HDMI | Una pantalla DSI se conecta directo, sin adaptador |
+| USB | 2 puertos USB 3.0 y 2 USB 2.0 | SSD (USB 3.0), Pico (USB 3.0), micrófono y parlante (USB 2.0): ocupan los 4 puertos |
 | "Sin nube" | DuckDuckGo necesita internet | Búsqueda web como herramienta opcional que falla sin romper nada. RAG = documentos locales |
-| Visión | Moondream puede sobrar | Comparar contra `gemma3:4b`, que ya acepta imágenes |
 | CAD | Blender no maneja bien medidas y tolerancias | Piezas funcionales en FreeCAD/Onshape/Fusion; estética en Blender |
-| Cronograma | El software empezaba en la semana 6 | El software arranca en la semana 1, en paralelo |
-| Roles | Faltaban responsables de la cara animada y del audio | Cara: Líder. Audio: Desarrollador de IA |
 
 ---
 
@@ -59,10 +63,10 @@ El proyecto se considera terminado cuando BMO:
 **Misión:** que todas las piezas funcionen juntas como un solo BMO y que el proyecto llegue a tiempo.
 
 **Responsabilidades**
-- Máquina de estados: `INACTIVO → ESCUCHANDO → PENSANDO → HABLANDO → INACTIVO`, más `MIRANDO` (cámara) y `ERROR`. Permitir interrumpir a BMO mientras habla.
+- Máquina de estados: `INACTIVO → ESCUCHANDO → PENSANDO → HABLANDO → INACTIVO`, más `ERROR`. Permitir interrumpir a BMO mientras habla.
 - Repositorio Git, estructura del proyecto en Python, `config.yaml` y logs.
-- Sistema de herramientas: el LLM elige la herramienta respondiendo en JSON estructurado (parámetro `format` con esquema en Ollama). Herramientas: `ver_camara`, `consultar_notas`, `hora_fecha` y `buscar_web` (opcional).
-- Cara de BMO en pantalla (Pygame o Chromium en modo kiosko) con una expresión por estado.
+- Sistema de herramientas: el LLM elige la herramienta respondiendo en JSON estructurado (parámetro `format` con esquema en Ollama). Herramientas: `consultar_notas`, `hora_fecha` y `buscar_web` (opcional).
+- Cara de BMO en pantalla (Pygame) con una expresión por estado.
 - Seguimiento semanal: tablero de tareas, riesgos, presupuesto y reunión corta.
 
 **Tareas**
@@ -82,18 +86,18 @@ El proyecto se considera terminado cuando BMO:
 
 ### 3.2 Ingeniero de Hardware y Electrónica
 
-**Misión:** que la energía, el audio, la cámara, la pantalla y los botones funcionen de forma confiable dentro de la carcasa.
+**Misión:** que la energía, el audio, la pantalla y los botones funcionen de forma confiable dentro de la carcasa.
 
 **Responsabilidades**
-- Verificar la compatibilidad de los componentes antes de comprar.
-- Banco de pruebas: Raspberry Pi OS de 64 bits, arranque desde NVMe y acceso por SSH para el equipo.
+- Verificar la compatibilidad de los componentes antes de comprar (sección 2).
+- Banco de pruebas: Raspberry Pi OS de 64 bits, arranque desde el SSD USB y acceso por SSH para el equipo.
 - Pruebas de energía y temperatura con el LLM a carga máxima (`vcgencmd measure_temp`, `vcgencmd get_throttled`).
 - PCB de controles completa. Ver la **sección 5**.
 - Plano de medidas reales para el Diseñador 3D.
 
 **Tareas**
 - [ ] S1: Lista de materiales con enlaces, revisión de compatibilidad y compra
-- [ ] S2: Banco de pruebas funcionando con NVMe y SSH
+- [ ] S2: Banco de pruebas funcionando con SSD USB y SSH
 - [ ] S2: Informe de autonomía de batería y temperatura (10 min a carga máxima)
 - [ ] S3: Botones en protoboard enviando teclas por USB (pasos 1–2 de la sección 5)
 - [ ] S4: PCB diseñada, revisada y **pedida** (pasos 3–9)
@@ -110,9 +114,9 @@ El proyecto se considera terminado cuando BMO:
 **Misión:** una carcasa fiel a BMO que ventile bien, sea fácil de abrir y tenga buen acabado.
 
 **Responsabilidades**
-- Modelo funcional en CAD paramétrico: soportes para Pi, pantalla, cámara, parlante, micrófono, PCB y batería. Insertos roscados M2.5. Acceso al USB-C y a la NVMe.
+- Modelo funcional en CAD paramétrico: soportes para Pi, pantalla, parlante, micrófono, PCB, SSD y batería. Insertos roscados M2.5. Acceso al USB-C de carga y al SSD.
 - Modelo estético en Blender: brazos y piernas con imanes, rejillas y detalles.
-- Flujo de aire: entrada abajo y salida arriba, alineada con el Active Cooler.
+- Flujo de aire: entrada abajo y salida arriba, alineada con el ventilador de la Pi.
 - Impresiones de prueba de las piezas críticas. Tolerancia de encaje ≈0.2–0.3 mm.
 - Acabado: lijado (de grano 120 a 400), masilla, imprimación, pintura turquesa y barniz.
 - Diseñar las **tapas de los botones** (cruceta, botón rojo, triángulo, botón verde) según la sección 5.6.
@@ -133,26 +137,26 @@ El proyecto se considera terminado cuando BMO:
 
 ### 3.4 Desarrollador de IA y Prompt Engineering
 
-**Misión:** que BMO escuche, piense, vea y hable **rápido**, todo en la Pi.
+**Misión:** que BMO escuche, piense y hable **lo más rápido posible** en una Pi 4, todo en local.
 
 **Responsabilidades**
-- Comparar modelos **en la Pi 5**: `gemma3:1b` vs `gemma3:4b`, y Moondream vs Gemma 3 con imagen. Medir tokens por segundo, tiempo hasta la primera palabra y uso de RAM.
-- Voz a texto: `faster-whisper` o `whisper.cpp` (modelos `tiny`/`base`). Detectar el fin de la frase con VAD (Silero).
+- Comparar modelos **en la Pi 4**: `gemma3:270m` vs `gemma3:1b` (y `gemma3:4b` solo como referencia de calidad si la Pi tiene 8 GB). Medir tokens por segundo, tiempo hasta la primera palabra, uso de RAM y temperatura.
+- Voz a texto: `whisper.cpp` o `faster-whisper` con el modelo `tiny` (`base` solo si la latencia lo permite). Detectar el fin de la frase con VAD (Silero).
 - Palabra de activación: entrenar "Hey BMO" con openWakeWord usando voces sintéticas generadas con Piper.
-- Texto a voz: Piper con una voz en español. Leer la respuesta **frase por frase mientras se genera**.
-- Audio: volumen y eco. Evitar que BMO se escuche a sí mismo y se active solo.
+- Texto a voz: Piper con una voz en español de calidad `low` o `medium` (la más rápida que suene bien). Leer la respuesta **frase por frase mientras se genera**.
+- Audio: volumen, eco e interrupción. Evitar que BMO se escuche a sí mismo y se active solo.
 - Personalidad: prompt de sistema de BMO, respuestas cortas y 20 preguntas de prueba.
-- RAG local (opcional) con `nomic-embed-text`.
+- RAG local (opcional): solo si la RAM y la latencia lo permiten.
 
 **Tareas**
-- [ ] S1–2: Informe comparativo de modelos en la Pi
+- [ ] S1–2: Informe comparativo de modelos en la Pi 4
 - [ ] S3: Palabra de activación entrenada y probada en ambiente real
 - [ ] S4: Ciclo de voz completo: activación → transcripción → LLM → voz
-- [ ] S5: Visión integrada como herramienta
-- [ ] S6–7: Optimización (`keep_alive`, respuesta por partes) y ajuste de la personalidad
+- [ ] S5: Interrupción de BMO mientras habla, control de eco y volumen
+- [ ] S6–7: Optimización (`keep_alive`, respuesta por partes, hilos de CPU) y ajuste de la personalidad
 - [ ] S8–9: Pruebas con ruido, distintas voces y distancias
 
-**Recibe:** Pi en el banco de pruebas (Hardware) y contratos (Líder). **Entrega:** `wake.py`, `stt.py`, `llm.py`, `tts.py`, `vision.py`.
+**Recibe:** Pi en el banco de pruebas (Hardware) y contratos (Líder). **Entrega:** `wake.py`, `stt.py`, `llm.py`, `tts.py`.
 
 ---
 
@@ -166,22 +170,20 @@ Se definen en la semana 1. Ninguna de estas interfaces se cambia sin avisar al r
 
 | Botón | Tecla | Acción en BMO |
 |---|---|---|
-| Cruceta ↑ ↓ ← → | Flechas | Navegar menús / mover la cara |
+| Cruceta ↑ ↓ ← → | Flechas | Navegar menús / mover la cara / volumen (← →) |
 | A (rojo grande) | `Enter` | Hablar (push-to-talk) / confirmar |
 | B (verde) | `Esc` | Cancelar / interrumpir a BMO |
-| Triángulo (azul) | `F1` | Tomar foto y describirla |
+| Triángulo (azul) | `F1` | Repetir la última respuesta |
 | Start | `F2` | Menú |
-| Select | `F3` | Cambiar modo / volumen |
+| Select | `F3` | Cambiar modo |
 
 **Módulos de IA → Bucle principal (Python)**
 
 ```python
-escuchar_activacion() -> None          # bloquea hasta oír "Hey BMO"
-escuchar() -> str                      # graba hasta el silencio y devuelve el texto
-pensar(texto, historial) -> Iterator[str]   # va entregando frases
+escuchar() -> str                           # graba hasta el silencio y devuelve el texto
+pensar(texto, historial, herramientas) -> Iterator[Parte]   # va entregando frases
 hablar(frase: str) -> None
 detener_habla() -> None
-ver(pregunta: str) -> str              # foto + descripción
 ```
 
 **Estados → UI:** evento `estado_cambiado(nuevo_estado)`. La cara traduce cada estado en una expresión.
@@ -194,15 +196,15 @@ ver(pregunta: str) -> str              # foto + descripción
 
 ### 5.1 Qué hace la PCB
 
-Es una placa ubicada detrás del frontal de BMO, debajo de la pantalla. Lleva **9 pulsadores** y una **Raspberry Pi Pico** (microcontrolador RP2040). La Pico se conecta por USB a la Raspberry Pi 5 y se presenta como un **teclado USB**: cada botón envía una tecla. No necesita drivers.
+Es una placa ubicada detrás del frontal de BMO, debajo de la pantalla. Lleva **9 pulsadores** y una **Raspberry Pi Pico** (microcontrolador RP2040). La Pico se conecta por USB a la Raspberry Pi 4 y se presenta como un **teclado USB**: cada botón envía una tecla. No necesita drivers.
 
 ```
- [Botón] ──► GPIO de la Pico ──► firmware (CircuitPython) ──► USB HID ──► Raspberry Pi 5 ──► software de BMO
+ [Botón] ──► GPIO de la Pico ──► firmware (CircuitPython) ──► USB HID ──► Raspberry Pi 4 ──► software de BMO
 ```
 
 **¿Por qué usar una Pico y no conectar los botones a los GPIO de la Pi?**
 - La PCB se puede probar en cualquier PC.
-- No ocupa los pines de la Pi, que pueden estar tapados por los HATs.
+- No ocupa los pines de la Pi, que pueden estar tapados por el HAT de batería y el ventilador.
 - El software solo lee teclas, lo que lo hace más simple y fácil de probar.
 
 ### 5.2 Diseño del frontal (vista desde adelante)
@@ -323,7 +325,7 @@ Cada pulsador va **entre un GPIO y GND**. El GPIO tiene activada la resistencia 
 #### Paso 6 — Ubicar los componentes
 1. **Pulsadores en la cara frontal (F.Cu)**, en la posición exacta de los agujeros del frontal según el DXF.
 2. **Cruceta:** los 4 pulsadores en cruz, a **~9–10 mm del centro**. La tapa impresa en forma de cruz se balancea sobre un pivote central y aprieta uno a la vez.
-3. **Pico en la cara trasera (B.Cu)**, con el **conector USB apuntando hacia donde está la Pi 5** y espacio para el cable.
+3. **Pico en la cara trasera (B.Cu)**, con el **conector USB apuntando hacia donde está la Pi 4** y espacio para el cable.
 4. LED en su agujero del frontal y R1 cerca del LED.
 5. Agujeros de montaje en las 4 esquinas, a ≥ 3 mm del borde, coordinados con los postes de la carcasa.
 6. Revisa la vista 3D (`Alt+3`) para detectar choques.
@@ -378,7 +380,7 @@ Limpia el flux con alcohol isopropílico.
 
 #### Paso 12 — Integrar
 1. Monta la PCB en la carcasa con separadores M2.5.
-2. Conecta el cable USB a la Pi 5.
+2. Conecta el cable USB a la Pi 4.
 3. Confirma con el Líder que el software reacciona a cada tecla según la tabla de la sección 4.
 
 ### 5.6 Tapas de los botones (coordinar con 3D)
@@ -394,6 +396,8 @@ Limpia el flux con alcohol isopropílico.
 Cada tapa lleva un **reborde** por dentro del frontal para que no se salga, y un vástago que apoya sobre el pulsador.
 
 ### 5.7 Firmware (`code.py` en la Pico, CircuitPython)
+
+La versión vigente está en [`firmware/pico/code.py`](../firmware/pico/code.py).
 
 ```python
 import board
@@ -466,27 +470,19 @@ while True:
 
 ## 6. Materiales y presupuesto
 
-> Completar los precios al momento de comprar. Verificar la compatibilidad de la sección 2 **antes** de pagar.
+La lista completa, con precios y estado de compra, está en [hardware/bom.md](hardware/bom.md). Resumen:
 
-| Categoría | Componente | Cant. | Precio unit. | Total | Responsable | Comprado |
-|---|---|---|---|---|---|---|
-| Cerebro | Raspberry Pi 5 16 GB | 1 | | | Hardware | [ ] |
-| Cerebro | Active Cooler | 1 | | | Hardware | [ ] |
-| Almacenamiento | HAT M.2 + SSD NVMe (≥256 GB) | 1 | | | Hardware | [ ] |
-| Energía | HAT/UPS de batería compatible con 5V/5A | 1 | | | Hardware | [ ] |
-| Energía | Fuente oficial 27 W USB-C | 1 | | | Hardware | [ ] |
-| Pantalla | Pantalla táctil 5" 800x480 + cable para Pi 5 | 1 | | | Hardware | [ ] |
-| Cámara | Camera Module 3 + cable 22→15 pines | 1 | | | Hardware | [ ] |
-| Audio | Micrófono USB compacto | 1 | | | Hardware | [ ] |
-| Audio | Parlante USB | 1 | | | Hardware | [ ] |
-| Controles | Componentes de la sección 5.3 | 1 juego | | | Hardware | [ ] |
-| Controles | Fabricación de la PCB (5 unid. + envío) | 1 | | | Hardware | [ ] |
-| Carcasa | Filamento PLA/PETG | 1–2 kg | | | 3D | [ ] |
-| Carcasa | Masilla, imprimación, pintura, barniz, lijas | 1 juego | | | 3D | [ ] |
-| Carcasa | Insertos roscados M2.5, tornillos, imanes | 1 juego | | | 3D | [ ] |
-| | | | | **Total:** | | |
+| Categoría | Componentes |
+|---|---|
+| Cerebro | Raspberry Pi 4 (8 GB), disipadores + ventilador 5V |
+| Almacenamiento | SSD + adaptador USB 3.0 (o microSD solo para pruebas) |
+| Energía | HAT/UPS de batería de 5V/3A, fuente oficial USB-C 15 W |
+| Pantalla | Pantalla táctil 5" 800x480 (DSI 15 pines o HDMI) |
+| Audio | Micrófono USB y parlante USB |
+| Controles | PCB de la sección 5 |
+| Carcasa | Filamento, masilla, imprimación, pintura, barniz, insertos, imanes |
 
-**Software (gratuito):** Raspberry Pi OS 64 bits, Python, Ollama, Gemma 3, Moondream, faster-whisper / whisper.cpp, openWakeWord, Piper, KiCad, FreeCAD/Onshape, Blender.
+**Software (gratuito):** Raspberry Pi OS 64 bits, Python, Ollama, Gemma 3, whisper.cpp / faster-whisper, openWakeWord, Piper, KiCad, FreeCAD/Onshape, Blender.
 
 ---
 
@@ -495,10 +491,10 @@ while True:
 | Sem. | Líder / Software | Hardware y Electrónica | Diseño 3D | IA |
 |---|---|---|---|---|
 | 1 | Arquitectura, contratos, repositorio | Revisión de compatibilidad y compra | Bocetos y proporciones | Comparación de modelos en PC |
-| 2 | Bucle de estados con módulos simulados | Banco de pruebas, energía y temperatura | Medidas provisionales y DXF del frontal | Comparación de modelos en la Pi |
+| 2 | Bucle de estados con módulos simulados | Banco de pruebas, energía y temperatura | Medidas provisionales y DXF del frontal | **Comparación de modelos en la Pi 4 (decisivo)** |
 | 3 | Cara de BMO | Botones en protoboard | Modelo v1 e impresión de prueba | Palabra de activación |
 | 4 | Sistema de herramientas | **PCB diseñada y pedida** | Modelo v2 | Ciclo de voz completo |
-| 5 | Integración en el banco de pruebas | Medidas finales y STEP | Impresión de prueba completa y prueba térmica | Visión |
+| 5 | Integración en el banco de pruebas | Medidas finales y STEP | Impresión de prueba completa y prueba térmica | Interrupción, eco y volumen |
 | 6 | Integración completa | Soldar y probar la PCB | Impresión final | Optimización |
 | 7 | `systemd` y robustez | Cableado interno | Pintura | Personalidad |
 | 8 | Pruebas de punta a punta | **Ensamblaje (todo el equipo)** | **Ensamblaje** | Pruebas con ruido |
@@ -510,10 +506,11 @@ while True:
 
 | Riesgo | Prob. | Impacto | Mitigación | Responsable |
 |---|---|---|---|---|
-| El LLM es demasiado lento en la Pi | Media | Alto | Medir en la semana 2. Alternativas: `gemma3:1b`, respuestas cortas, respuesta por partes | IA |
-| La batería no entrega 5A | Media | Alto | Probar en la semana 2. Alternativa: usarlo enchufado | Hardware |
+| El LLM es demasiado lento en la Pi 4 | **Alta** | Alto | Medir en la semana 2. Alternativas: `gemma3:270m`, respuestas de 1–2 frases, respuesta por partes, frases de espera ("Mmm, déjame pensar…") | IA |
+| La Pi 4 se calienta y baja su velocidad | Alta | Alto | Disipadores + ventilador desde la semana 2; prueba térmica con la carcasa de prueba en la semana 5 | Hardware + 3D |
+| Poca RAM (si la Pi es de 4 GB) | Media | Alto | Modelos de ≤ 1B, Whisper `tiny`, sin RAG | IA |
+| La batería no entrega 3A | Media | Alto | Probar en la semana 2. Alternativa: usarlo enchufado | Hardware |
 | La PCB llega tarde o con errores | Baja | Medio | Pedirla en la semana 4, protoboard como respaldo, revisión cruzada | Hardware |
 | Pulsadores girados en la PCB | Media | Medio | Verificar con multímetro y usar la huella oficial (5.4) | Hardware |
-| Calentamiento dentro de la carcasa | Media | Alto | Prueba térmica con la impresión de prueba en la semana 5 | 3D + Hardware |
 | Activaciones falsas o BMO se escucha a sí mismo | Media | Medio | Silenciar el micrófono mientras habla y ajustar el umbral | IA |
 | Retrasos por dependencias entre áreas | Media | Medio | Contratos en la semana 1, revisión semanal | Líder |

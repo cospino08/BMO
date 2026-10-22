@@ -21,5 +21,6 @@ Un ADR (*Architecture Decision Record*) es un documento corto que explica **por 
 |---|---|---|---|
 | [0001](0001-botones-por-usb-hid.md) | Botones mediante Raspberry Pi Pico como teclado USB | Propuesta | Hardware |
 | [0002](0002-hilos-y-ui-pygame.md) | Un programa Python con hilos y UI en Pygame | Propuesta | Software |
+| [0003](0003-raspberry-pi-4-sin-vision.md) | Raspberry Pi 4 y sin visión artificial por ahora | Aceptada | Todas |
 
-**Pendientes (semana 2, según los benchmarks):** modelo LLM, modelo de visión, motor de Whisper.
+**Pendientes (semana 2, según los benchmarks):** modelo LLM, motor de Whisper.

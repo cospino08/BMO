@@ -6,16 +6,18 @@
 
 | # | Componente | Especificación mínima | Cant. | Proveedor / enlace | Precio unit. | Total | Comprado | Recibido |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Raspberry Pi 5 | 16 GB RAM | 1 | | | | [ ] | [ ] |
-| 2 | Active Cooler | Oficial para Pi 5 | 1 | | | | [ ] | [ ] |
-| 3 | HAT M.2 (PCIe) | Compatible con el HAT de batería (verificar altura y pines) | 1 | | | | [ ] | [ ] |
-| 4 | SSD NVMe | M.2 2230 o 2242 (según el HAT), ≥ 256 GB | 1 | | | | [ ] | [ ] |
-| 5 | HAT/UPS de batería | Salida 5V/5A sostenida | 1 | | | | [ ] | [ ] |
-| 6 | Fuente | Oficial 27 W USB-C | 1 | | | | [ ] | [ ] |
-| 7 | Pantalla táctil | 5", 800x480, IPS; cable para Pi 5 (DSI 22 pines o micro-HDMI) | 1 | | | | [ ] | [ ] |
-| 8 | Cámara | Camera Module 3 + cable 22→15 pines | 1 | | | | [ ] | [ ] |
+| 1 | Raspberry Pi 4 | 8 GB RAM (mínimo 4 GB) | 1 | | | | [ ] | [ ] |
+| 2 | Refrigeración | Disipadores + ventilador 5V (conexión a GPIO) | 1 | | | | [ ] | [ ] |
+| 3 | SSD | SATA o NVMe pequeño, ≥ 128 GB | 1 | | | | [ ] | [ ] |
+| 4 | Adaptador / carcasa USB 3.0 para el SSD | Compatible con UASP y arranque en Pi 4 | 1 | | | | [ ] | [ ] |
+| 5 | HAT/UPS de batería | Salida 5V/3A sostenida; que deje libres los pines 5V/GND | 1 | | | | [ ] | [ ] |
+| 6 | Fuente | Oficial 15 W USB-C (5.1V/3A) | 1 | | | | [ ] | [ ] |
+| 7 | Pantalla táctil | 5", 800x480, IPS; DSI 15 pines o micro-HDMI; preferir táctil que no use USB | 1 | | | | [ ] | [ ] |
+| 8 | microSD | ≥ 32 GB, solo para pruebas iniciales | 1 | | | | [ ] | [ ] |
 | 9 | Micrófono | USB, compacto, omnidireccional | 1 | | | | [ ] | [ ] |
 | 10 | Parlante | USB, con amplificador integrado | 1 | | | | [ ] | [ ] |
+
+> Sin cámara por ahora ([ADR 0003](../decisiones/0003-raspberry-pi-4-sin-vision.md)).
 
 ## PCB de controles
 
