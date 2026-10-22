@@ -1,0 +1,43 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# --- Configuración local (se sube solo config.example.yaml) ---
+software/config.yaml
+.env
+
+# --- Modelos y datos pesados de IA (se descargan, no se suben) ---
+*.gguf
+*.bin
+*.pt
+*.onnx.data
+ia/wakeword/datos/
+ia/wakeword/salida/
+ia/benchmarks/grabaciones/
+
+# --- Grabaciones y logs ---
+*.wav
+*.log
+logs/
+
+# --- KiCad ---
+*-backups/
+*.lck
+_autosave-*
+fp-info-cache
+*.kicad_prl
+pcb/kicad/**/gerbers/
+
+# --- Blender / FreeCAD ---
+*.blend1
+*.blend2
+*.FCBak
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
