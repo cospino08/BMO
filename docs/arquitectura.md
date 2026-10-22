@@ -1,11 +1,13 @@
 # Arquitectura del software
 
 > **Estado:** propuesta inicial (semana 1). El Líder la confirma o ajusta en la semana 1. Cada cambio importante se registra como ADR en [`decisiones/`](decisiones/README.md).
+>
+> Hardware: **Raspberry Pi 4**. Sin visión por ahora ([ADR 0003](decisiones/0003-raspberry-pi-4-sin-vision.md)).
 
 ## 1. Vista general
 
 ```
-                         ┌──────────────────────── Raspberry Pi 5 ────────────────────────┐
+                         ┌──────────────────────── Raspberry Pi 4 ────────────────────────┐
                          │                                                                │
  Micrófono USB ─────────►│  Hilo AUDIO ──► wake word / VAD ──┐                            │
                          │                                   │                            │
@@ -15,11 +17,10 @@
                          │   ▲                       └──────┬───────┘                     │
                          │   │ estado_cambiado              ▼                             │
  Pantalla 5" ◄───────────│───┘                   Hilo AGENTE (máquina de estados)        │
-                         │                          │       │         │                    │
- Cámara ────────────────►│◄── herramienta ver ──────┘       │         │                    │
+                         │                                  │         │                    │
                          │                                  ▼         ▼                    │
                          │                      Ollama (local)    Hilo VOZ ──► Piper ──────│──► Parlante USB
-                         │                      gemma3 / visión   (cola de frases)         │
+                         │                      gemma3 (texto)    (cola de frases)         │
                          └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,17 +35,17 @@
 
 Los hilos se comunican **solo con colas** (`queue.Queue`). Ningún hilo modifica variables de otro.
 
+**Uso de CPU en la Pi 4 (4 núcleos):** el LLM y Whisper nunca corren al mismo tiempo, porque la máquina de estados los ejecuta en orden. La UI se limita a 30 fps y la wake word es liviana, así que el LLM puede usar los 4 núcleos.
+
 ## 2. Máquina de estados
 
 ```mermaid
 stateDiagram-v2
     [*] --> INACTIVO
     INACTIVO --> ESCUCHANDO: WAKE / TECLA_A
-    INACTIVO --> MIRANDO: TECLA_FOTO
+    INACTIVO --> HABLANDO: TECLA_REPETIR (hay respuesta previa)
     ESCUCHANDO --> PENSANDO: TEXTO_LISTO
     ESCUCHANDO --> INACTIVO: SILENCIO_TIMEOUT / TECLA_B
-    PENSANDO --> MIRANDO: el LLM pide la herramienta ver_camara
-    MIRANDO --> PENSANDO: DESCRIPCION_LISTA
     PENSANDO --> HABLANDO: primera FRASE
     HABLANDO --> INACTIVO: FIN_HABLA
     HABLANDO --> ESCUCHANDO: WAKE / TECLA_A (interrupción)
@@ -58,7 +59,6 @@ stateDiagram-v2
 | `INACTIVO` | Parpadea, sonríe | Solo wake word | Espera eventos |
 | `ESCUCHANDO` | Ojos abiertos, ondas | Graba hasta el silencio | Transcribe al terminar |
 | `PENSANDO` | Ojos que giran / puntos | Solo wake word (interrupción) | Llama al LLM y a las herramientas |
-| `MIRANDO` | Ojos enfocados, flash | Solo wake word | Toma la foto y la describe |
 | `HABLANDO` | Boca animada | **Silenciado para la wake word** (evita que BMO se active con su propia voz) | Envía frases a la cola de voz |
 | `ERROR` | Cara confundida | Solo wake word | Registra el error y vuelve a `INACTIVO` |
 
@@ -70,19 +70,21 @@ Lista completa de eventos: ver [contratos.md §3](contratos.md#3-eventos).
 2. **Grabación:** se graba hasta 0.8 s de silencio (VAD), con un máximo de 15 s.
 3. **Transcripción:** `escuchar()` → Whisper → texto → evento `TEXTO_LISTO`.
 4. **Decisión:** el Agente llama a `pensar()`. El LLM responde en JSON:
-   - `{"herramienta": "ver_camara", "argumentos": {"pregunta": "..."}}` → se ejecuta la herramienta, se agrega el resultado al historial y se vuelve a llamar al LLM (máximo **2 herramientas por pregunta**).
+   - `{"herramienta": "hora_fecha", "argumentos": {}}` → se ejecuta la herramienta, se agrega el resultado al historial y se vuelve a llamar al LLM (máximo **1 herramienta por pregunta** en la Pi 4, porque cada llamada extra al LLM suma segundos).
    - `{"respuesta": "..."}` → se pasa a la respuesta hablada.
 5. **Respuesta:** la respuesta llega por partes (*streaming*). Cada vez que se completa una frase (`.`, `!`, `?`), se envía a la cola de Voz. BMO empieza a hablar con la primera frase.
 6. **Fin:** la cola de Voz se vacía → `FIN_HABLA` → `INACTIVO`.
 
-**Presupuesto de latencia** (objetivo: < 4 s desde que el usuario calla hasta que BMO empieza a hablar):
+**Presupuesto de latencia** (objetivo provisional: < 6 s desde que el usuario calla hasta que BMO empieza a hablar; se ajusta con el benchmark de la semana 2):
 
 | Etapa | Objetivo |
 |---|---|
 | Detección del fin de la frase (VAD) | 0.8 s |
-| Whisper (`base`, frase de 5 s) | ≤ 1.2 s |
-| LLM hasta la primera frase completa | ≤ 1.5 s |
-| Piper, primera frase | ≤ 0.5 s |
+| Whisper (`tiny`, frase de 5 s) | ≤ 1.5 s |
+| LLM hasta la primera frase completa | ≤ 3 s |
+| Piper, primera frase | ≤ 0.7 s |
+
+Si el LLM no cumple, BMO dice una **frase de espera pregrabada** ("Mmm, déjame pensar…") al entrar en `PENSANDO`, para que la espera no se sienta vacía.
 
 Cada etapa registra su duración en el log (ver §6) para comparar con esta tabla.
 
@@ -90,16 +92,18 @@ Cada etapa registra su duración en el log (ver §6) para comparar con esta tabl
 
 | Herramienta | Argumentos | Devuelve | Requiere internet |
 |---|---|---|---|
-| `ver_camara` | `pregunta: str` | Descripción de la imagen | No |
-| `consultar_notas` | `consulta: str` | Fragmentos relevantes de `ia/notas_rag/` | No |
 | `hora_fecha` | — | Hora y fecha actuales | No |
+| `consultar_notas` | `consulta: str` | Fragmentos relevantes de `ia/notas_rag/` (opcional, según la RAM) | No |
 | `buscar_web` | `consulta: str` | 3 resultados resumidos (DuckDuckGo) | **Sí** (si no hay conexión, devuelve "sin conexión" y no lanza error) |
 
 Cada herramienta es un archivo en `software/bmo/herramientas/` con una función y una descripción. El LLM recibe la lista de herramientas en el prompt de sistema. Para agregar una herramienta no hay que tocar el agente: se registra sola.
 
+> **Visión a futuro:** si se agrega una cámara, entra como una herramienta nueva (`ver_camara`) más un estado `MIRANDO`. No hay que cambiar el resto de la arquitectura.
+
 ## 5. Memoria y configuración
 
-- **Historial:** los últimos **6 turnos** de conversación, solo en RAM. Se borra tras 5 min en `INACTIVO`.
+- **Historial:** los últimos **4 turnos** de conversación, solo en RAM. Se borra tras 5 min en `INACTIVO`. Un historial más corto hace más rápido el LLM en la Pi 4.
+- **Última respuesta:** se guarda para el botón Triángulo (repetir).
 - **Configuración:** `software/config.yaml` (copiado de `config.example.yaml`). Ningún valor (modelos, umbrales, rutas, volumen) va escrito en el código. Claves: ver [contratos.md §4](contratos.md#4-configuración).
 - **Modelos cargados:** Ollama con `keep_alive: -1` para que el LLM no se descargue de la RAM.
 
@@ -120,6 +124,5 @@ Cada herramienta es un archivo en `software/bmo/herramientas/` con una función 
 ## 8. Decisiones pendientes
 
 - [ ] UI con Pygame (propuesta) o Chromium en modo kiosko → ADR 0002
-- [ ] Moondream o Gemma 3 para visión → ADR según el benchmark de la semana 2
-- [ ] `gemma3:1b` o `gemma3:4b` → ADR según el benchmark de la semana 2
-- [ ] `faster-whisper` o `whisper.cpp` → ADR según el benchmark de la semana 2
+- [ ] `gemma3:270m` o `gemma3:1b` → ADR según el benchmark de la semana 2
+- [ ] `whisper.cpp` o `faster-whisper` → ADR según el benchmark de la semana 2

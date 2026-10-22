@@ -1,6 +1,6 @@
-# despliegue/ — Instalación de BMO en la Raspberry Pi 5
+# despliegue/ — Instalación de BMO en la Raspberry Pi 4
 
-> Responsables: **Hardware** (sistema operativo, NVMe, energía) y **Líder** (software y servicio). Objetivo: que una Pi nueva quede funcionando como BMO siguiendo **solo** esta guía.
+> Responsables: **Hardware** (sistema operativo, SSD, energía) y **Líder** (software y servicio). Objetivo: que una Pi nueva quede funcionando como BMO siguiendo **solo** esta guía.
 
 ## Estructura a llenar
 
@@ -10,7 +10,7 @@ despliegue/
 ├── instalar.sh             ← script que automatiza los pasos 3–6 (Líder, S7)
 ├── bmo.service             ← servicio systemd: arranca BMO al encender y lo reinicia si se cae
 ├── modelos.txt             ← modelos de Ollama, Whisper y Piper con su versión exacta
-└── config.txt.extra        ← líneas agregadas a /boot/firmware/config.txt (PCIe, pantalla, cámara)
+└── config.txt.extra        ← líneas agregadas a /boot/firmware/config.txt (pantalla, ventilador, audio)
 ```
 
 ## Guía (borrador: verificar y completar cada comando en la Pi real)
@@ -19,15 +19,15 @@ despliegue/
 - Raspberry Pi OS **64 bits** (Bookworm o posterior), instalado con Raspberry Pi Imager.
 - En el Imager: usuario, Wi-Fi, SSH activado y nombre de equipo `bmo`.
 
-### 2. Arranque desde NVMe
+### 2. Arranque desde el SSD por USB
 - Actualizar el bootloader (`sudo rpi-eeprom-update`).
-- Activar PCIe en `config.txt` si el HAT lo requiere.
-- Clonar el sistema a la NVMe y cambiar el orden de arranque (`raspi-config` → *Advanced* → *Boot Order*).
+- Cambiar el orden de arranque a USB (`raspi-config` → *Advanced* → *Boot Order*).
+- Copiar el sistema al SSD (o grabarlo directo con Raspberry Pi Imager) y arrancar sin la microSD.
 - Anotar aquí los comandos exactos usados.
 
-### 3. Pantalla, cámara y audio
+### 3. Pantalla, ventilador y audio
 - Configurar la pantalla según el fabricante (ver [conexiones.md](../docs/hardware/conexiones.md)).
-- Cámara: `rpicam-hello` debe mostrar imagen.
+- Ventilador: con el LLM a carga máxima, `vcgencmd measure_temp` debe quedar bajo 75 °C.
 - Audio: `arecord -l` y `aplay -l` deben listar el micrófono y el parlante. Anotar los nombres en `config.yaml`.
 
 ### 4. Ollama y modelos

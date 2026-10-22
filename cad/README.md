@@ -19,7 +19,7 @@ cad/
 │       ├── tapa_bateria.stl
 │       ├── soporte_pi.stl
 │       ├── soporte_pantalla.stl
-│       ├── soporte_camara.stl
+│       ├── soporte_ssd.stl
 │       ├── boton_cruceta.stl
 │       ├── boton_a.stl
 │       ├── boton_b.stl
@@ -33,7 +33,7 @@ cad/
 ├── referencias/                   ← lo que se recibe o entrega a otras áreas
 │   ├── frontal_vX.Y.dxf           ← contorno del frontal + agujeros de botones → para pcb/
 │   ├── pcb_controles_vX.Y.step    ← recibido de pcb/fabricacion/
-│   └── componentes/               ← STEP de los fabricantes (Pi 5, pantalla, cámara)
+│   └── componentes/               ← STEP de los fabricantes (Pi 4, pantalla)
 └── fotos/                         ← impresiones de prueba, problemas de encaje, acabado final
 ```
 

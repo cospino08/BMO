@@ -9,7 +9,7 @@
 | [contratos.md](contratos.md) | Interfaces entre áreas: teclas, funciones de Python, eventos, configuración, medidas | Líder (aprueban todos) | Solo por PR aprobado por las áreas afectadas |
 | [decisiones/](decisiones/README.md) | Registro de decisiones técnicas (ADR) | Quien toma la decisión | Una por decisión |
 | [hardware/bom.md](hardware/bom.md) | Lista de materiales y presupuesto | Hardware | Al comprar |
-| [hardware/conexiones.md](hardware/conexiones.md) | Qué se conecta a qué en la Pi 5 | Hardware | Al cambiar el cableado |
+| [hardware/conexiones.md](hardware/conexiones.md) | Qué se conecta a qué en la Pi 4 | Hardware | Al cambiar el cableado |
 | [hardware/medidas.md](hardware/medidas.md) | Plano de medidas de los componentes para la carcasa | Hardware + 3D | Al medir o cambiar un componente |
 | [hardware/ensamblaje.md](hardware/ensamblaje.md) | Guía de montaje paso a paso con fotos | 3D + Hardware | Semana 8 |
 | [reuniones/](reuniones/README.md) | Actas semanales | Líder | Cada semana |

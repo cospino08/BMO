@@ -7,7 +7,7 @@
 
 ## Contexto
 
-BMO debe animar la cara, escuchar sin parar, pensar y hablar al mismo tiempo, en una Pi 5 donde la RAM y la CPU se reservan para los modelos.
+BMO debe animar la cara, escuchar sin parar, pensar y hablar al mismo tiempo, en una Pi 4 donde la RAM y la CPU se reservan para los modelos.
 
 ## Opciones consideradas
 
@@ -23,7 +23,7 @@ Opción **A**. Detalle en [`arquitectura.md`](../arquitectura.md).
 
 ## Evidencia
 
-Pendiente: medir la RAM libre con `gemma3:4b` cargado (semana 2). Si sobran más de 2 GB y la cara necesita más animación, reevaluar B.
+Pendiente: medir la RAM y la CPU libres con el LLM cargado (semana 2). En la Pi 4 la opción B es aún más costosa; solo se reevalúa si sobran más de 2 GB de RAM y la cara necesita más animación, reevaluar B.
 
 ## Consecuencias
 
